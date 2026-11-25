@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALL SHOP - Ta Boutique en Ligne</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f5f5f5}
+header{background:#111;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+header h1{color:#ff9900;font-size:22px}
+header h1 span{color:#fff}
+#cartBtn{background:#ff9900;border:none;padding:10px 15px;border-radius:20px;font-weight:bold;cursor:pointer}
+.hero{background:linear-gradient(135deg,#ff9900,#ff5722);color:#fff;padding:35px 20px;text-align:center}
+.hero h2{font-size:28px;margin-bottom:8px}
+.search{padding:15px}
+.search input{width:100%;padding:13px;border-radius:25px;border:1px solid #ddd;outline:none;font-size:15px}
+.cats{display:flex;gap:8px;overflow:auto;padding:0 15px 10px}
+.cats button{white-space:nowrap;padding:8px 16px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer}
+.cats button.active{background:#111;color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px}
+.card{background:#fff;border-radius:15px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.card img{width:100%;height:150px;object-fit:cover}
+.card .info{padding:10px}
+.card h3{font-size:14px;margin-bottom:4px}
+.card .price{color:#ff5722;font-weight:bold;font-size:16px}
+.card .old{color:#999;text-decoration:line-through;font-size:12px;margin-left:5px}
+.card button{width:100%;margin-top:8px;background:#111;color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer}
+footer{text-align:center;padding:20px;color:#888;font-size:13px}
+#cartBox{position:fixed;right:10px;top:70px;width:300px;max-width:90vw;background:#fff;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:15px;display:none;z-index:20}
+#cartBox h3{margin-bottom:10px}
+.cart-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:14px}
+#total{font-weight:bold;margin:12px 0;font-size:18px}
+#orderBtn{background:#25D366;color:#fff;border:none;width:100%;padding:13px;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer}
+</style>
+</head>
+<body>
+<header><h1>ALL <span>SHOP</span> 🛒</h1><button id="cartBtn" onclick="toggleCart()">🛒 Panier (<span id="count">0</span>)</button></header>
+<div class="hero"><h2>Bienvenue sur ALL SHOP</h2><p>Livraison rapide partout à Abidjan 🚀</p></div>
+<div class="search"><input id="searchInput" oninput="filter()" placeholder="🔍 Cherche chaussure, montre, téléphone..."></div>
+<div class="cats">
+<button class="active" onclick="setCat('all',this)">Tout</button>
+<button onclick="setCat('chaussure',this)">👟 Chaussures</button>
+<button onclick="setCat('montre',this)">⌚ Montres</button>
+<button onclick="setCat('telephone',this)">📱 Téléphones</button>
+<button onclick="setCat('habit',this)">👕 Habits</button>
+</div>
+<div class="grid" id="grid"></div>
+<div id="cartBox"><h3>Mon Panier</h3><div id="cartItems">Panier vide</div><div id="total"></div><button id="orderBtn" onclick="orderWhatsApp()">Commander sur WhatsApp ✅</button></div>
+<footer>© 2026 ALL SHOP - Abidjan 🇨🇮</footer>
+<script>
+const products=[
+{id:1,name:"Nike Air Jordan - Blanc Rouge",cat:"chaussure",price:35000,old:45000,img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500"},
+{id:2,name:"Sneakers Nike Noire",cat:"chaussure",price:28000,old:35000,img:"https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500"},
+{id:3,name:"Montre Luxe Dorée Homme",cat:"montre",price:25000,old:40000,img:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"},
+{id:4,name:"Montre Connectée Smart Watch",cat:"montre",price:30000,old:50000,img:"https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=500"},
+{id:5,name:"iPhone 13 Pro - Neuf",cat:"telephone",price:285000,old:350000,img:"https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500"},
+{id:6,name:"Samsung Galaxy S23",cat:"telephone",price:240000,old:300000,img:"https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=500"},
+{id:7,name:"T-Shirt Oversize - Noir",cat:"habit",price:8000,old:12000,img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500"},
+{id:8,name:"Veste Jean - Style Abidjan",cat:"habit",price:15000,old:22000,img:"https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500"},
+];
+let cart=[]; let currentCat='all';
+function render(){
+let q=document.getElementById('searchInput').value.toLowerCase();
+let list=products.filter(p=>(currentCat=='all'||p.cat==currentCat)&&p.name.toLowerCase().includes(q));
+document.getElementById('grid').innerHTML=list.map(p=>`<div class="card"><img src="${p.img}"><div class="info"><h3>${p.name}</h3><span class="price">${p.price.toLocaleString()} F</span><span class="old">${p.old.toLocaleString()} F</span><button onclick="add(${p.id})">Ajouter au panier 🛒</button></div></div>`).join('');
+}
+function setCat(c,el){currentCat=c;document.querySelectorAll('.cats button').forEach(b=>b.classList.remove('active'));el.classList.add('active');render();}
+function filter(){render();}
+function add(id){cart.push(products.find(p=>p.id==id));updateCart();alert('Ajouté au panier ✅');}
+function updateCart(){document.getElementById('count').innerText=cart.length;let total=cart.reduce((a,b)=>a+b.price,0);document.getElementById('cartItems').innerHTML=cart.length?cart.map(c=>`<div class="cart-item"><span>${c.name}</span><b>${c.price.toLocaleString()} F</b></div>`).join(''):'Panier vide';document.getElementById('total').innerText=cart.length?'Total : '+total.toLocaleString()+' F':'';}
+function toggleCart(){let b=document.getElementById('cartBox');b.style.display=b.style.display=='block'?'none':'block';}
+function orderWhatsApp(){if(!cart.length){alert('Panier vide !');return;}let msg="Bonjour ALL SHOP, je veux commander :%0A"+cart.map(c=>"- "+c.name+" : "+c.price+" F").join('%0A');window.open('https://wa.me/2250000000000?text='+msg,'_blank');}
+render();
+</script>
+</body>
+</html>
